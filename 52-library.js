@@ -136,8 +136,8 @@ function play(el){const id=el.dataset.vid,pl=el.dataset.pl==='1',f=document.crea
 const PDFV=(()=>{
 const PJ=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/'];
 const enc=encodeURIComponent,MB=n=>(n/1048576).toFixed(1).replace('.',',')+' MB';
-const ORDER=['pdfjs','native','gview','moz','berkas'];
-const NAMA={auto:'Otomatis',pdfjs:'pdf.js',native:'Bawaan',gview:'Google',moz:'Mozilla',berkas:'Berkas'};
+const ORDER=['pdfjs','frame','native','gview','moz','berkas'];
+const NAMA={auto:'Otomatis',pdfjs:'pdf.js',native:'Bawaan',frame:'Sumber',gview:'Google',moz:'Mozilla',berkas:'Berkas'};
 const proxies=()=>{
   const L=[],own=(LS.get('sun_pdfproxy','')||window.__PDF_PROXY||'').trim();
   if(/^https:\/\//.test(own))L.push({n:'proxy pribadi',f:u=>own.includes('{url}')?own.replace('{url}',enc(u)):own+enc(u)});
@@ -225,7 +225,7 @@ function loadLib(){
   return LIBP}
 
 const UI=`<div class="pvx"><div class="pvt" role="tablist" aria-label="Mesin pratinjau">
-${['auto','pdfjs','native','gview','moz','berkas'].map(k=>`<button type="button" class="pvk" role="tab" data-pe="${k}">${NAMA[k]}</button>`).join('')}
+${['auto','pdfjs','frame','native','gview','moz','berkas'].map(k=>`<button type="button" class="pvk" role="tab" data-pe="${k}">${NAMA[k]}</button>`).join('')}
 <span class="pvg"></span><button type="button" class="pvk" data-pn title="Coba mesin berikutnya">Mesin lain \u25b8</button><button type="button" class="pvk" data-pf title="Layar penuh" aria-label="Layar penuh">\u26f6</button></div>
 <div class="pvc" hidden><button type="button" class="pvk" data-pp aria-label="Halaman sebelumnya">\u25c0</button><input class="pvi" type="number" min="1" value="1" aria-label="Nomor halaman"><span class="pvtot">/ 1</span><button type="button" class="pvk" data-px aria-label="Halaman berikutnya">\u25b6</button><span class="pvg"></span><button type="button" class="pvk" data-pz="-" aria-label="Perkecil">\u2212</button><button type="button" class="pvk pvzl" data-pz="0" title="Pas lebar">100%</button><button type="button" class="pvk" data-pz="+" aria-label="Perbesar">+</button></div>
 <div class="pvs" role="status" aria-live="polite"></div><div class="pvbar" hidden><i></i></div>
@@ -317,6 +317,12 @@ function open(w,url,title){
     else{frame(url);say('Byte PDF tidak bisa diambil; mencoba membuka langsung (tergantung izin situs).')}
     if(navigator.pdfViewerEnabled===false)say('Browser ini tidak punya penampil PDF bawaan (umum di HP). Pakai mesin pdf.js atau Google.');
     footer()}
+  /* ---- mesin: bingkai langsung dari tautan sumber (tanpa proxy/unduh; memakai penampil PDF browser) ---- */
+  async function eFrame(live){
+    spin('Memuat bingkai dari sumber\u2026');
+    const f=frame(url+(url.includes('#')?'':'#toolbar=1&navpanes=0'),'PDF dari sumber');
+    f.setAttribute('loading','eager');
+    say('Bingkai langsung dari tautan sumber. Bila kosong/gelap, situs sumber melarang ditampilkan di situs lain: klik \u201cMesin lain\u201d atau pilih berkas PDF.');footer()}
   /* ---- mesin 3: Google Viewer ---- */
   async function eGview(live){
     spin('Memuat Google Viewer\u2026');
@@ -332,7 +338,7 @@ function open(w,url,title){
   const nice=()=>(decodeURIComponent(url.split('?')[0].split('/').pop()||'dokumen.pdf')||'dokumen.pdf');
   async function eBerkas(live,note){
     tools.hidden=true;bar.hidden=true;S.cur='berkas';
-    bd.innerHTML='<div class="pvl pvdz"><b>Pratinjau lewat berkas PDF</b><small>'+(note?esc(note)+' ':'')+'Situs sumber tidak mengizinkan PDF-nya ditampilkan di dalam aplikasi. Caranya: (1) klik <b>Buka/unduh PDF</b> lalu simpan berkasnya, (2) pilih atau seret berkas itu ke sini. Berkas disimpan di perangkat ini, jadi pratinjau berikutnya langsung terbuka, juga tanpa internet.</small><div class="pvt" style="border:0;justify-content:center"><a class="pvk" href="'+ea(url)+'" target="_blank" rel="noopener noreferrer" download>1. Buka/unduh PDF</a><label class="pvk on">2. Pilih berkas PDF<input type="file" accept="application/pdf,.pdf" hidden></label></div><small data-pm></small></div>';
+    bd.innerHTML='<div class="pvl pvdz"><b>Pratinjau lewat berkas PDF</b><small>'+(note?esc(note)+' ':'')+'Situs sumber tidak mengizinkan PDF-nya ditampilkan di dalam aplikasi. Caranya: (1) klik <b>Buka/unduh PDF</b> lalu simpan berkasnya, (2) pilih atau seret berkas itu ke sini. Berkas disimpan di perangkat ini, jadi pratinjau berikutnya langsung terbuka, juga tanpa internet.</small><div class="pvt" style="border:0;justify-content:center"><button type="button" class="pvk" data-pe="frame">Sematkan dari sumber</button><a class="pvk" href="'+ea(url)+'" target="_blank" rel="noopener noreferrer" download>1. Buka/unduh PDF</a><label class="pvk on">2. Pilih berkas PDF<input type="file" accept="application/pdf,.pdf" hidden></label></div><small data-pm></small></div>';
     say('Menunggu berkas PDF dari perangkat.');footer();
     const z=bd.firstChild,inp=z.querySelector('input'),msg=z.querySelector('[data-pm]');
     const take=async f=>{
@@ -349,7 +355,7 @@ function open(w,url,title){
     ['dragleave','drop'].forEach(n=>z.addEventListener(n,e=>{e.preventDefault();z.classList.remove('over')}));
     z.addEventListener('drop',e=>take(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]));
   }
-  const E={pdfjs:eCanvas,native:eNative,gview:eGview,moz:eMoz,berkas:eBerkas};
+  const E={pdfjs:eCanvas,frame:eFrame,native:eNative,gview:eGview,moz:eMoz,berkas:eBerkas};
 
   async function start(mode,keepMode){
     const my=++S.rid,live=()=>!S.dead&&S.rid===my;
@@ -361,7 +367,7 @@ function open(w,url,title){
       if(mode==='auto'){
         S.cur='pdfjs';
         try{await eCanvas(live);return}catch(e){if(!live())return}
-        let order=S.bytes?(navigator.pdfViewerEnabled===false?['gview','moz']:['native','gview','moz']):['gview','native','moz'];
+        let order=S.bytes?(navigator.pdfViewerEnabled===false?['gview','moz']:['native','gview','moz']):['frame','gview','moz'];
         for(const n of order){if(!live())return;S.cur=n;
           try{await E[n](live,true);if(live())say('Otomatis: pdf.js tidak bisa dipakai, beralih ke '+NAMA[n]+'. '+stl.textContent);return}catch(e){}}
         throw new Error('gagal');
