@@ -47,7 +47,7 @@ PDF `.bin` dan `vault.js` memakai satu kunci dokumen yang sama. Build memakai ul
 - Pencarian: semua kata harus cocok; bila kosong, otomatis dicari ulang dengan toleransi salah ketik dan sinonim. Tekan `/` untuk fokus ke kolom cari.
 - Tombol Back (Android/browser) bergerak antar halaman di dalam aplikasi, tidak keluar. Tautan `#hlm-N` membuka halaman N langsung.
 - Navigasi seksi sebelumnya/berikutnya, bilah progres baca, penanda, catatan pribadi, ukuran huruf, tema.
-- Asisten dokumen (BM25 + sinonim + salah ketik), baca-keras dengan sorotan, Pustaka video & pedoman, Teknik Pro.
+- Asisten dokumen (BM25 + sinonim + salah ketik), baca-keras dengan sorotan, Pustaka (halaman penuh), Teknik Pro (halaman penuh).
 - Offline: halaman login dan dokumen tersimpan lewat service worker (PDF dan video tetap butuh internet).
 - Keyboard: kartu hasil/seksi bisa difokus dan dibuka dengan Enter/Spasi, Escape menutup panel.
 
@@ -62,3 +62,9 @@ Beranda dan hamburger sama-sama punya dua lapisan yang bisa dilipat/dibuka denga
 
 ## Modul Teknik Pro (75-teknik.js)
 Lapisan Teknik di hamburger membuka: U-Ditch (DS-1..6), Box Culvert + rekomendasi dari debit, Pasangan Batu, DPT (guling/geser/daya dukung), Bore Pile (Decourt-Quaresma). Asisten paham bahasa alami, mis. `box culvert 2x2 panjang 50 m debit 4`. Semua hasil = ESTIMASI AWAL; wajib diverifikasi ahli dan gambar kerja.
+
+## Susunan menu (tanpa duplikat)
+- **Beranda**: Lanjutkan membaca, Penanda, lapisan Spesifikasi Umum 2025 (kartu divisi + tombol PDF) dan lapisan Teknik.
+- **Hamburger**: bilah atas (ikon Beranda, tutup), daftar isi ringkas (seksi yang sedang dibaca ditandai), lapisan Teknik, footer ukuran huruf & tema. Tidak ada blok Navigasi, Penanda, maupun tombol PDF di sini.
+- **PDF per bab**: hanya di kartu divisi (beranda) dan di atas halaman baca. Panel/tombol dok "Unduh" dihapus.
+- **Pustaka** (tombol dok): halaman penuh dengan pencarian lintas pedoman + video, tab kategori berjumlah, filter tahun, urutan, pratinjau PDF, salin nomor. Data di `50-library-data.js`.

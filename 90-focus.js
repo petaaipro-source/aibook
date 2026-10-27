@@ -153,7 +153,7 @@ addEventListener('scroll',()=>{if(!tick)tick=requestAnimationFrame(sync)},{passi
 addEventListener('resize',()=>{if(!tick)tick=requestAnimationFrame(sync)});
 
 /* ---------- panel: hanya satu terbuka; tandai tombol dok yang aktif ---------- */
-const PN={ai:'Asisten',pk:'Pustaka',dp:'Unduh',np:'Catatan'};
+const PN={ai:'Asisten',np:'Catatan'};
 const open=id=>{const e=g(id);return !!e&&e.isConnected&&getComputedStyle(e).display!=='none'};
 const fb=l=>[...d.querySelectorAll('.fab button')].find(b=>(b.getAttribute('aria-label')||b.textContent).trim().replace(/^\S+\s/,'')===l||(b.getAttribute('aria-label')||'').trim()===l);
 const shut=id=>{const e=g(id);if(!e)return;if(id==='np'){const b=fb('Catatan');if(b)b.click()}else{const x=e.querySelector('#aix,.x');if(x)x.click();else e.style.display='none'}};

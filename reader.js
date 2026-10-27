@@ -35,8 +35,11 @@ function render(s){
   else if(s.k==='search'){q.value=s.q;search(s.q)}
   else if(s.k==='tech'){HL='';q.value='';curSec=null;ti.textContent='Teknik';scrollTo(0,0);
     if(window.__TKUI)window.__TKUI.mount(m,s.id);else m.innerHTML='<p class="empty">Memuat modul teknik...</p>'}
+  else if(s.k==='lib'){HL='';q.value='';curSec=null;ti.textContent='Pustaka';scrollTo(0,0);
+    if(window.__LIB)window.__LIB.mount(m,s.tab);else m.innerHTML='<p class="empty">Memuat pustaka...</p>'}
   else{HL=s.hl||'';q.value=s.qv||'';open_(s.p,s.t)}
 }
+window.__libGo=tab=>{if(cur.k==='lib'){scrollTo(0,0);return}go({k:'lib',tab})};
 window.__techGo=id=>{if(cur.k==='tech'){cur.id=id;render(cur);return}go({k:'tech',id})};
 function divCards(){let h='';
   for(const v of D){
@@ -56,7 +59,7 @@ function home(){
   fillTk();scrollTo(0,0);
 }
 function updStar(){const on=!!curSec&&bms().some(b=>b.p===curSec.p);st.textContent=on?'\u2605':'\u2606';st.setAttribute('aria-pressed',on);st.setAttribute('aria-label',on?'Hapus penanda':'Tandai seksi ini')}
-function renderBm(){const b=bms().filter(x=>P&&P[x.p]);$('bml').innerHTML=b.length?b.map(x=>`<button class="mi" data-m="${x.p}">&#9733; ${esc(KK(x.k))} - ${esc(x.t)}</button>`).join(''):'<p class="pg">Belum ada penanda. Ketuk &#9734; di atas saat membaca.</p>'}
+function renderBm(){} /* Penanda hanya tampil di beranda (tidak diulang di hamburger) */
 st.onclick=()=>{if(!curSec)return;const b=bms(),i=b.findIndex(x=>x.p===curSec.p);i>=0?b.splice(i,1):b.push({p:curSec.p,k:curSec.k,t:curSec.t});LS.set('sun_bm',b);updStar();renderBm()};
 function open_(p,target){
   const [v,s]=secOf(p);if(!s){home();return}curSec=s;
@@ -90,13 +93,20 @@ function techCards(){const T=window.__TKUI;
   const cur=T.isOpen()?T.cur():'';
   return T.tools.map(t=>`<div class="tc${t.id===cur?' on':''}" tabindex="0" role="button" data-tech="${t.id}"><span class="no">${t.i}</span><span class="nm">${esc(t.n)}<small>${esc(t.d||'')}</small></span></div>`).join('')+'<p class="pg tkn">Hasil berupa estimasi awal; wajib diverifikasi ahli dan gambar kerja.</p>'}
 function fillTk(){const T=window.__TKUI;document.querySelectorAll('.ly[data-ly="tk"]').forEach(el=>{el.querySelector('.lyx').innerHTML=techCards();if(T)el.querySelector('.lyt small').textContent=(T.tools.length-1)+' kalkulator + katalog'})}
+function markNv(){try{nv.querySelectorAll('.s.on').forEach(x=>x.classList.remove('on'));if(!curSec)return;
+  const el=nv.querySelector('.s[data-m="'+curSec.p+'"]');if(!el)return;el.classList.add('on');
+  const d=el.closest('details');if(d)d.open=true;
+  const ly=el.closest('.ly');if(ly&&ly.dataset.open==='1')requestAnimationFrame(()=>el.scrollIntoView({block:'center'}))}catch(e){}}
 function buildMenu(){
-  let sp='<h2>Navigasi</h2><button class="mi" id="mh">Beranda (semua divisi)</button><h2>Penanda</h2><div id="bml"></div><h2>Ukuran huruf</h2><div class="seg"><button id="fm" aria-label="Kecilkan">A-</button><button disabled id="fzv">'+fz+'</button><button id="fp" aria-label="Besarkan">A+</button></div><h2>Tema</h2><div class="seg"><button data-th="auto">Otomatis</button><button data-th="light">Terang</button><button data-th="dark">Gelap</button></div><h2>Lompat ke seksi</h2>';
-  for(const v of D){sp+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}</span></summary>`;
+  let sp='';
+  for(const v of D){sp+=`<details class="dv"><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}</span></summary>`;
     for(const s of v.secs)sp+=`<div class="s" tabindex="0" role="button" data-m="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}</span></div>`;sp+='</details>'}
-  nv.innerHTML=lyHead('nv','sp',D.length+' bagian dokumen',sp)+lyHead('nv','tk','kalkulator teknik',techCards());
-  fillTk();renderBm();
-  $('mh').onclick=()=>{menu(false);stack=[];cur={k:'home'};render(cur)};
+  const top='<div class="nvt"><span class="nvb"><i aria-hidden="true">\u{1F4D8}</i>Spek Umum 2025</span><button type="button" id="nhm" aria-label="Ke beranda" title="Beranda">&#8962;</button><button type="button" id="nvx" aria-label="Tutup menu">&#10005;</button></div>';
+  const foot='<div class="nvf"><div class="seg"><button id="fm" aria-label="Kecilkan huruf">A-</button><button disabled id="fzv">'+fz+'</button><button id="fp" aria-label="Besarkan huruf">A+</button></div><div class="seg"><button data-th="auto">Otomatis</button><button data-th="light">Terang</button><button data-th="dark">Gelap</button></div></div>';
+  nv.innerHTML=top+lyHead('nv','sp',D.length+' bagian dokumen',sp)+lyHead('nv','tk','kalkulator teknik',techCards())+foot;
+  fillTk();
+  $('nhm').onclick=()=>{menu(false);stack=[];cur={k:'home'};render(cur)};
+  $('nvx').onclick=()=>menu(false);
   $('fm').onclick=()=>setFz(fz-2);$('fp').onclick=()=>setFz(fz+2);
   nv.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
   setTheme(LS.get('sun_theme','auto'));
@@ -107,7 +117,7 @@ if(!window.__nvBound){window.__nvBound=1;
     const t=e.target.closest('[data-m]');if(t){menu(false);const p=+t.dataset.m;go({k:'read',p,t:p});return}
     const k=e.target.closest('[data-tech]');if(k&&window.__techGo){menu(false);window.__techGo(k.dataset.tech)}});
   addEventListener('tk-ready',fillTk);
-  new MutationObserver(()=>{if(!dr.hidden)fillTk()}).observe(dr,{attributes:true,attributeFilter:['hidden']})}
+  new MutationObserver(()=>{if(!dr.hidden){markNv();fillTk()}}).observe(dr,{attributes:true,attributeFilter:['hidden']})}
 m.addEventListener('click',e=>{
   const lh=e.target.closest('.lyh');if(lh){const el=lh.parentNode;setLy(el,el.dataset.open!=='1');return}
   const tc=e.target.closest('[data-tech]');if(tc){if(window.__techGo)window.__techGo(tc.dataset.tech);return}

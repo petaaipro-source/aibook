@@ -85,3 +85,25 @@ html body #tk.tkpg{position:static!important;display:flex!important;flex-directi
 #tk.tkpg #tkb{overflow:visible!important;padding:6px 18px 28px!important}
 #tk.tkpg .tkf{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
 #m input,#m select,#m textarea{-webkit-user-select:text!important;user-select:text!important}
+
+/* ---- hamburger rapi: bilah atas, daftar isi ringkas, footer tampilan ---- */
+#nv{padding:0 14px!important}
+.nvt{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:6px;margin:0 -14px 12px;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 10px 16px;background:var(--pkbg,var(--bg));border-bottom:1px solid var(--line)}
+.nvb{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}.nvb i{font-style:normal}
+.nvt button{width:38px;height:38px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:18px;line-height:1}
+.nvf{position:sticky;bottom:0;z-index:3;display:grid;gap:8px;margin:12px -14px 0;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--pkbg,var(--bg));border-top:1px solid var(--line)}
+.nvf .seg{margin:0}.nvf .seg button{padding:8px 4px;font-size:13px}
+#nv .ly[data-open="1"] .lyx{padding:4px 8px 8px}
+html body #nv details.dv{background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;-webkit-backdrop-filter:none;backdrop-filter:none;transform:none;border-bottom:1px solid var(--line)}
+html body #nv details.dv:last-child{border-bottom:0}
+#nv details.dv::after{display:none}
+#nv details.dv summary{padding:9px 4px;gap:10px}
+#nv details.dv .no{width:28px;height:28px;font-size:12px;border-radius:8px;box-shadow:none}
+#nv details.dv .nm{font-size:13.5px;font-weight:600}
+#nv details.dv summary::after{font-size:20px}
+#nv details.dv[open] summary{border-bottom:0}
+#nv details.dv .s{padding:8px 8px 8px 42px;border-top:0}#nv details.dv .s:hover{padding-left:46px}
+#nv .s.on{background:var(--chip)}#nv .s.on .k,#nv .s.on .t{color:var(--acc);font-weight:600}
+#nv .tc{padding:8px 10px;margin-bottom:6px;border-radius:12px;box-shadow:none}#nv .tc small{display:none}
+#nv .tc .no{width:30px;height:30px;font-size:15px;border-radius:9px;box-shadow:none}
+#nv .tc .nm{font-size:14px}

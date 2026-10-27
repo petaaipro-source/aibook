@@ -1,7 +1,7 @@
 /* Unduh PDF per bab (Pembuka, Divisi 1-10, Lampiran).
    PDF terenkripsi (pdf/<nama>.bin; folder utama juga dicoba), didekripsi di browser dengan kunci dokumen.
    Hanya aktif untuk admin atau user dengan "download": true di users.json.
-   Tombol ada di 3 tempat: tombol melayang "Unduh" (panel daftar), kartu divisi, dan atas halaman baca. */
+   Tombol ada di 2 tempat: kartu divisi (beranda) dan atas halaman baca. Tidak ada panel/tombol Unduh terpisah (hindari duplikat). */
 const DLK=U.d&&U.k?U:null,
 PDFN={P:'00_Pembuka_dan_Daftar_Isi',1:'Divisi_01_Umum_dan_Penerapan_SMKK',2:'Divisi_02_Drainase',3:'Divisi_03_Pekerjaan_Tanah_dan_Geosintetik',4:'Divisi_04_Pekerjaan_Preventif',5:'Divisi_05_Perkerasan_Berbutir_dan_Beton_Semen',6:'Divisi_06_Perkerasan_Aspal',7:'Divisi_07_Struktur',8:'Divisi_08_Rehabilitasi_Jembatan',9:'Divisi_09_Pekerjaan_Harian_dan_Lain-lain',10:'Divisi_10_Pekerjaan_Pemeliharaan',L:'Lampiran'},
 PDFO=['P',1,2,3,4,5,6,7,8,9,10,'L'];
@@ -59,19 +59,7 @@ function decorate(root){if(!root)return;root.querySelectorAll('details > summary
 function readerBtn(){const old=document.getElementById('dlb');if(old)old.remove();if(!curSec)return;const [v]=secOf(curSec.p);if(!v||!PDFN[v.n])return;
   const w=document.createElement('div');w.id='dlb';const b=mkb(v.n);b.textContent='⬇ Unduh PDF '+(v.n==='P'?'Pembuka':v.n==='L'?'Lampiran':'Divisi '+v.n);w.appendChild(b);m.prepend(w)}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.dl');if(!b)return;e.preventDefault();e.stopPropagation();const n=b.dataset.dl;dl(isNaN(n)?n:+n,b)},true);
-const refresh=()=>{try{decorate(m);decorate(nv);if(!m.querySelector('#dlb'))readerBtn()}catch(e){}};
+const refresh=()=>{try{decorate(m);if(!m.querySelector('#dlb'))readerBtn()}catch(e){}};
 new MutationObserver(refresh).observe(m,{childList:true});
-new MutationObserver(()=>{try{decorate(nv)}catch(e){}}).observe(nv,{childList:true});
 refresh();
-/* 3) tombol melayang + panel daftar semua PDF (selalu tersedia, tidak bergantung susunan halaman) */
-const dp=document.createElement('div');dp.id='dp';dp.setAttribute('role','dialog');dp.setAttribute('aria-label','Unduh PDF');
-dp.innerHTML='<header><span>⬇ Unduh PDF per bab</span><button class="x" aria-label="Tutup">✕</button></header><div class="ls"></div><div class="nt">PDF dibuka kuncinya di perangkat ini, lalu disimpan ke folder unduhan.</div>';
-const ls=dp.querySelector('.ls');
-PDFO.forEach(n=>{const r=document.createElement('div');r.className='it';const i=document.createElement('b');i.textContent=n;const s=document.createElement('span');s.textContent=title(n);r.append(i,s,mkb(n));ls.appendChild(r)});
-document.body.appendChild(dp);
-const closeDp=()=>{dp.style.display='none'};
-dp.querySelector('.x').onclick=closeDp;
-mk('⬇ Unduh',()=>{if(dp.style.display==='flex'){closeDp();return}
-  for(const id of ['ai','pk','np']){const x=document.getElementById(id);if(x)x.style.display=id==='np'?'none':'none'}
-  dp.style.display='flex'});
 }
