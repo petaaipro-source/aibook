@@ -30,10 +30,20 @@ function back(){if(stack.length&&history.state&&history.state.n){history.back();
 addEventListener('popstate',()=>{if(stack.length)popBack();else if(cur.k!=='home'){cur={k:'home'};render(cur)}});
 function render(s){
   pb.style.transform='scaleX(0)';bk.hidden=s.k==='home';st.hidden=s.k!=='read';
+  if(s.k!=='tech'&&window.__TKUI)window.__TKUI.unmount();
   if(s.k==='home'){HL='';q.value='';home()}
   else if(s.k==='search'){q.value=s.q;search(s.q)}
+  else if(s.k==='tech'){HL='';q.value='';curSec=null;ti.textContent='Teknik';scrollTo(0,0);
+    if(window.__TKUI)window.__TKUI.mount(m,s.id);else m.innerHTML='<p class="empty">Memuat modul teknik...</p>'}
   else{HL=s.hl||'';q.value=s.qv||'';open_(s.p,s.t)}
 }
+window.__techGo=id=>{if(cur.k==='tech'){cur.id=id;render(cur);return}go({k:'tech',id})};
+function divCards(){let h='';
+  for(const v of D){
+    h+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}<small>${v.secs.length} ${v.n==='L'?'lampiran':'seksi'}${v.n==='R'?' - tambahan':' - hlm. '+v.a+'-'+v.b}</small></span></summary>`;
+    for(const s of v.secs)h+=`<div class="s" tabindex="0" role="button" data-p="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}<span class="pg">${v.n==='R'?'indeks tambahan':'hlm. '+s.p+'-'+s.e}</span></span></div>`;
+    h+='</details>'}
+  return h}
 function home(){
   ti.textContent='Spesifikasi Umum 2025';curSec=null;let h='';
   const l=LS.get('sun_last',null);
@@ -41,12 +51,9 @@ function home(){
   const b=bms().filter(x=>P[x.p]);
   if(b.length){h+='<p class="pg">Penanda</p>';for(const x of b)h+=`<div class="r" tabindex="0" role="button" data-p="${x.p}">&#9733; ${esc(KK(x.k))} - ${esc(x.t)}</div>`}
   if(h)h+='<p class="pg">Semua divisi</p>';
-  for(const v of D){
-    h+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}<small>${v.secs.length} ${v.n==='L'?'lampiran':'seksi'}${v.n==='R'?' - tambahan':' - hlm. '+v.a+'-'+v.b}</small></span></summary>`;
-    for(const s of v.secs)h+=`<div class="s" tabindex="0" role="button" data-p="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}<span class="pg">${v.n==='R'?'indeks tambahan':'hlm. '+s.p+'-'+s.e}</span></span></div>`;
-    h+='</details>';
-  }
-  m.innerHTML=h;scrollTo(0,0);
+  h+=divCards();
+  m.innerHTML=lyHead('home','sp',D.length+' bagian dokumen',h)+lyHead('home','tk','kalkulator teknik',techCards());
+  fillTk();scrollTo(0,0);
 }
 function updStar(){const on=!!curSec&&bms().some(b=>b.p===curSec.p);st.textContent=on?'\u2605':'\u2606';st.setAttribute('aria-pressed',on);st.setAttribute('aria-label',on?'Hapus penanda':'Tandai seksi ini')}
 function renderBm(){const b=bms().filter(x=>P&&P[x.p]);$('bml').innerHTML=b.length?b.map(x=>`<button class="mi" data-m="${x.p}">&#9733; ${esc(KK(x.k))} - ${esc(x.t)}</button>`).join(''):'<p class="pg">Belum ada penanda. Ketuk &#9734; di atas saat membaca.</p>'}
@@ -74,19 +81,20 @@ function menu(o){dr.hidden=!o;hb.setAttribute('aria-expanded',o);if(o)nv.focus()
 function setFz(n){fz=Math.max(14,Math.min(26,n));LS.set('sun_fz',fz);document.querySelectorAll('.txt').forEach(e=>e.style.fontSize=fz+'px');const f=$('fzv');if(f)f.textContent=fz}
 function setTheme(t){const r=document.documentElement;t==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',t);LS.set('sun_theme',t);nv.querySelectorAll('[data-th]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t))}
 const LY={sp:{t:'Spesifikasi Umum 2025',i:'\u{1F4D8}'},tk:{t:'Teknik',i:'\u{1F3D7}\uFE0F'}};
-const lyOpen=k=>!!Object.assign({sp:true,tk:false},LS.get('sun_ly',{}))[k];
-function lyHead(k,sub,body){const o=lyOpen(k);return `<section class="ly" data-ly="${k}" data-open="${o?1:0}"><button type="button" class="lyh" aria-expanded="${o}" aria-controls="lyb-${k}"><span class="lyi" aria-hidden="true">${LY[k].i}</span><span class="lyt">${LY[k].t}<small>${sub}</small></span><span class="lyc" aria-hidden="true"></span></button><div class="lyb" id="lyb-${k}"><div class="lyx"${o?'':' inert'}>${body}</div></div></section>`}
-function setLy(k,o){const el=nv.querySelector('.ly[data-ly="'+k+'"]');if(!el)return;el.dataset.open=o?1:0;el.querySelector('.lyh').setAttribute('aria-expanded',o);const x=el.querySelector('.lyx');o?x.removeAttribute('inert'):x.setAttribute('inert','');const v=Object.assign({sp:true,tk:false},LS.get('sun_ly',{}));v[k]=o;LS.set('sun_ly',v)}
-function tkBody(){const T=window.__TKUI;
+const LYK={nv:'sun_ly',home:'sun_lyh'},LYD={nv:{sp:true,tk:false},home:{sp:true,tk:true}};
+const lyState=c=>Object.assign({},LYD[c],LS.get(LYK[c],{}));
+function lyHead(c,k,sub,body){const o=!!lyState(c)[k];return `<section class="ly" data-c="${c}" data-ly="${k}" data-open="${o?1:0}"><button type="button" class="lyh" aria-expanded="${o}" aria-controls="lyb-${c}-${k}"><span class="lyi" aria-hidden="true">${LY[k].i}</span><span class="lyt">${LY[k].t}<small>${sub}</small></span><span class="lyc" aria-hidden="true"></span></button><div class="lyb" id="lyb-${c}-${k}"><div class="lyx"${o?'':' inert'}>${body}</div></div></section>`}
+function setLy(el,o){const c=el.dataset.c,k=el.dataset.ly;el.dataset.open=o?1:0;el.querySelector('.lyh').setAttribute('aria-expanded',o);const x=el.querySelector('.lyx');o?x.removeAttribute('inert'):x.setAttribute('inert','');const v=lyState(c);v[k]=o;LS.set(LYK[c],v)}
+function techCards(){const T=window.__TKUI;
   if(!T)return '<p class="pg">Memuat modul teknik...</p>';
   const cur=T.isOpen()?T.cur():'';
-  return '<div class="tkg">'+T.tools.map(t=>`<button type="button" class="tki${t.id===cur?' on':''}" data-tk="${t.id}"><span aria-hidden="true">${t.i}</span><b>${esc(t.n)}</b></button>`).join('')+'</div><p class="pg tkn">Kalkulator & gambar skema. Hasil berupa estimasi awal; wajib diverifikasi ahli dan gambar kerja.</p>'}
-function fillTk(){const el=nv.querySelector('#lyb-tk .lyx');if(el)el.innerHTML=tkBody();const sm=nv.querySelector('.ly[data-ly="tk"] .lyt small');if(sm&&window.__TKUI)sm.textContent=window.__TKUI.tools.length-1+' kalkulator + katalog'}
+  return T.tools.map(t=>`<div class="tc${t.id===cur?' on':''}" tabindex="0" role="button" data-tech="${t.id}"><span class="no">${t.i}</span><span class="nm">${esc(t.n)}<small>${esc(t.d||'')}</small></span></div>`).join('')+'<p class="pg tkn">Hasil berupa estimasi awal; wajib diverifikasi ahli dan gambar kerja.</p>'}
+function fillTk(){const T=window.__TKUI;document.querySelectorAll('.ly[data-ly="tk"]').forEach(el=>{el.querySelector('.lyx').innerHTML=techCards();if(T)el.querySelector('.lyt small').textContent=(T.tools.length-1)+' kalkulator + katalog'})}
 function buildMenu(){
   let sp='<h2>Navigasi</h2><button class="mi" id="mh">Beranda (semua divisi)</button><h2>Penanda</h2><div id="bml"></div><h2>Ukuran huruf</h2><div class="seg"><button id="fm" aria-label="Kecilkan">A-</button><button disabled id="fzv">'+fz+'</button><button id="fp" aria-label="Besarkan">A+</button></div><h2>Tema</h2><div class="seg"><button data-th="auto">Otomatis</button><button data-th="light">Terang</button><button data-th="dark">Gelap</button></div><h2>Lompat ke seksi</h2>';
   for(const v of D){sp+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}</span></summary>`;
     for(const s of v.secs)sp+=`<div class="s" tabindex="0" role="button" data-m="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}</span></div>`;sp+='</details>'}
-  nv.innerHTML=lyHead('sp',D.length+' bagian dokumen',sp)+lyHead('tk','kalkulator teknik',tkBody());
+  nv.innerHTML=lyHead('nv','sp',D.length+' bagian dokumen',sp)+lyHead('nv','tk','kalkulator teknik',techCards());
   fillTk();renderBm();
   $('mh').onclick=()=>{menu(false);stack=[];cur={k:'home'};render(cur)};
   $('fm').onclick=()=>setFz(fz-2);$('fp').onclick=()=>setFz(fz+2);
@@ -95,12 +103,14 @@ function buildMenu(){
 }
 if(!window.__nvBound){window.__nvBound=1;
   nv.addEventListener('click',e=>{
-    const h=e.target.closest('.lyh');if(h){const el=h.parentNode;setLy(el.dataset.ly,el.dataset.open!=='1');return}
+    const h=e.target.closest('.lyh');if(h){const el=h.parentNode;setLy(el,el.dataset.open!=='1');return}
     const t=e.target.closest('[data-m]');if(t){menu(false);const p=+t.dataset.m;go({k:'read',p,t:p});return}
-    const k=e.target.closest('[data-tk]');if(k&&window.__TKUI){const T=window.__TKUI;menu(false);if(T.isOpen()&&T.cur()===k.dataset.tk)return;T.open(k.dataset.tk)}});
+    const k=e.target.closest('[data-tech]');if(k&&window.__techGo){menu(false);window.__techGo(k.dataset.tech)}});
   addEventListener('tk-ready',fillTk);
   new MutationObserver(()=>{if(!dr.hidden)fillTk()}).observe(dr,{attributes:true,attributeFilter:['hidden']})}
 m.addEventListener('click',e=>{
+  const lh=e.target.closest('.lyh');if(lh){const el=lh.parentNode;setLy(el,el.dataset.open!=='1');return}
+  const tc=e.target.closest('[data-tech]');if(tc){if(window.__techGo)window.__techGo(tc.dataset.tech);return}
   const a=e.target.closest('a.x');
   if(a){e.preventDefault();const p=a.dataset.pg?+a.dataset.pg:resolve(a.dataset.ref);if(p)go({k:'read',p,t:p});return}
   const t=e.target.closest('[data-p]');if(!t)return;const p=+t.dataset.p;
@@ -121,7 +131,7 @@ m.addEventListener('click',e=>{const im=e.target.closest('img[data-fig]');if(im)
 $('lbx').onclick=lbClose;lb.addEventListener('click',e=>{if(e.target===lb)lbClose()});
 addEventListener('keydown',e=>{if(e.key==='Escape')lbClose()});
 m.addEventListener('click',e=>{if(e.target.closest('#up'))scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
-addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button][data-p],[role=button][data-m]')){e.preventDefault();e.target.click()}});
+addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button][data-p],[role=button][data-m],[role=button][data-tech]')){e.preventDefault();e.target.click()}});
 let pr=0;addEventListener('scroll',()=>{if(pr)return;pr=requestAnimationFrame(()=>{pr=0;const h=document.documentElement.scrollHeight-innerHeight;pb.style.transform='scaleX('+(cur.k==='read'&&h>0?Math.min(1,scrollY/h):0).toFixed(4)+')'})},{passive:true});
 addEventListener('keydown',e=>{if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')){e.preventDefault();q.focus();q.select()}});
 load().catch(()=>{m.innerHTML='<p class="empty">Browser ini tidak mendukung dekompresi. Perbarui browser Anda.</p>'});

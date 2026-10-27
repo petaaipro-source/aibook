@@ -204,6 +204,7 @@ const tk=document.createElement('div');tk.id='tk';tk.innerHTML='<header><span>ðŸ
 const nav=tk.querySelector('nav'),body=tk.querySelector('#tkb'),VAL={};let cur='ud',lastTxt='';
 const tabs=[...Object.keys(TOOLS),'cat'];
 const draw=()=>{nav.innerHTML='';tabs.forEach(id=>{const t=id==='cat'?CAT:TOOLS[id],b=document.createElement('button');b.textContent=t.i+' '+t.n;b.className=id===cur?'on':'';b.onclick=()=>{cur=id;draw()};nav.appendChild(b)});
+ if(tk.classList.contains('tkpg')){const ti=document.getElementById('ti');if(ti)ti.textContent='Teknik - '+(cur==='cat'?CAT:TOOLS[cur]).n}
  if(cur==='cat'){body.innerHTML=CAT.html();return}
  const T=TOOLS[cur],V=VAL[cur]||(VAL[cur]=Object.fromEntries(T.fields.map(f=>[f.k,f.v])));
  body.innerHTML='<div class="tkf">'+T.fields.map(f=>`<label class="${f.t||String(f.l).length>38?'w':''}">${esc(f.l)}${f.u?' ('+esc(f.u)+')':''}${f.o?'<select data-k="'+f.k+'">'+f.o.map(o=>`<option${String(V[f.k])===String(o)?' selected':''}>${esc(o)}</option>`).join('')+'</select>':f.t==='ta'?'<textarea data-k="'+f.k+'">'+esc(V[f.k])+'</textarea>':'<input data-k="'+f.k+'" type="number" step="any" value="'+esc(V[f.k])+'">'}</label>`).join('')+'</div><div id="tkres"></div>';
@@ -216,11 +217,14 @@ const draw=()=>{nav.innerHTML='';tabs.forEach(id=>{const t=id==='cat'?CAT:TOOLS[
   body.querySelector('#tkcp').onclick=e=>{navigator.clipboard&&navigator.clipboard.writeText(lastTxt);e.target.textContent='âœ“ Tersalin'};
   body.querySelector('#tkpr').onclick=()=>{const w=window.open('','_blank');if(w){w.document.write('<pre style="font:13px monospace;white-space:pre-wrap">'+esc(lastTxt)+'</pre>');w.document.close();w.print()}}};
  body.querySelectorAll('[data-k]').forEach(e=>e.oninput=e.onchange=run);run()};
-const open=(id,pre)=>{if(id)cur=id;if(pre&&TOOLS[cur]){VAL[cur]=Object.assign(VAL[cur]||Object.fromEntries(TOOLS[cur].fields.map(f=>[f.k,f.v])),pre)}tk.style.display='flex';ai.style.display='none';const pk=document.getElementById('pk');if(pk)pk.style.display='none';draw()};
+const open=(id,pre)=>{if(id)cur=id;if(pre&&TOOLS[cur]){VAL[cur]=Object.assign(VAL[cur]||Object.fromEntries(TOOLS[cur].fields.map(f=>[f.k,f.v])),pre)}ai.style.display='none';const pk=document.getElementById('pk');if(pk)pk.style.display='none';if(window.__techGo)window.__techGo(cur);else{tk.style.display='flex';draw()}};
 tk.querySelector('.x').onclick=()=>tk.style.display='none';
-/* Tombol Teknik tidak lagi di dok bawah: kini menjadi lapisan "Teknik" di menu hamburger (reader.js memanggil window.__TKUI). */
-window.__TKUI={tools:tabs.map(id=>{const t=id==='cat'?CAT:TOOLS[id];return{id,n:t.n,i:t.i}}),
- open:id=>open(id),close:()=>{tk.style.display='none'},isOpen:()=>tk.style.display==='flex',cur:()=>cur};
+/* Teknik kini HALAMAN PENUH (seperti halaman divisi), dibuka dari beranda atau hamburger. reader.js memanggil window.__TKUI. */
+const TD={ud:'DS-1 s/d DS-6: volume beton, tulangan, kapasitas aliran',bc:'Semua ukuran standar + rekomendasi dari debit',pb:'Kebutuhan semen, pasir, dan batu per volume',dp:'Cek guling, geser, dan daya dukung tanah',bp:'Daya dukung tiang bor (Decourt-Quaresma)',cat:'Daftar ukuran standar box culvert'};
+window.__TKUI={tools:tabs.map(id=>{const t=id==='cat'?CAT:TOOLS[id];return{id,n:t.n,i:t.i,d:TD[id]||''}}),
+ mount:(host,id)=>{if(id&&tabs.includes(id))cur=id;host.innerHTML='';tk.classList.add('tkpg');tk.style.display='flex';host.appendChild(tk);draw()},
+ unmount:()=>{if(!tk.classList.contains('tkpg'))return;tk.classList.remove('tkpg');tk.style.display='none';document.body.appendChild(tk)},
+ isOpen:()=>tk.classList.contains('tkpg')&&tk.isConnected,cur:()=>cur};
 window.dispatchEvent(new Event('tk-ready'));
 
 /* ===================== ASISTEN CERDAS (bahasa alami) ===================== */

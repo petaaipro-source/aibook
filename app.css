@@ -64,8 +64,24 @@ h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#st{fon
 .ly[data-open="1"] .lyb{grid-template-rows:1fr}
 .lyx{min-height:0;overflow:hidden;padding:0 12px}.ly[data-open="1"] .lyx{padding:12px}
 .ly .lyx>h2:first-child{margin-top:0}
-.tkg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tki{display:flex;align-items:center;gap:8px;padding:11px 10px;text-align:left;min-width:0}.tki span{font-size:18px}.tki b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tki.on{border-color:var(--acc);background:var(--chip);color:var(--acc)}
-.tkn{margin:10px 2px 0;line-height:1.4}
 @media(prefers-reduced-motion:reduce){.lyb,.lyc{transition:none}}
+
+/* kartu alat Teknik: sama dengan kartu divisi */
+.tc{display:flex;gap:12px;align-items:center;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,background .2s}
+.tc::after{content:"\203A";font-size:26px;line-height:1;color:var(--mut);transition:transform .2s,color .2s}
+.tc:hover,.tc.on{border-color:var(--acc);background:var(--chip)}.tc:hover::after{transform:translateX(3px);color:var(--acc)}.tc.on::after{color:var(--acc)}
+.tc:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tc .nm small{font-size:12.5px}
+.tkn{margin:6px 2px 2px;line-height:1.4}
+main .ly{border-radius:20px;margin-bottom:16px;box-shadow:var(--sh)}
+main .lyh{padding:16px 18px}main .lyi{width:48px;height:48px;font-size:22px;border-radius:14px}main .lyt{font-size:17px}main .lyt small{font-size:12.5px}
+main .ly[data-open="1"] .lyx{padding:14px 14px 4px}
+main .tc{padding:16px 18px;border-radius:18px;margin-bottom:12px;box-shadow:var(--sh)}
+#nv .tc{padding:10px 12px;margin-bottom:8px}#nv .tc::after{font-size:22px}
+/* halaman penuh Teknik (di dalam <main>) */
+html body #tk.tkpg{position:static!important;display:flex!important;flex-direction:column;width:auto!important;max-width:none!important;height:auto!important;max-height:none!important;margin:0!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;z-index:auto!important;border-radius:18px!important;border-width:1px!important;box-shadow:var(--sh)!important;animation:none!important;overflow:visible!important}
+#tk.tkpg>header{display:none!important}
+#tk.tkpg nav{padding-top:14px!important}
+#tk.tkpg #tkb{overflow:visible!important;padding:6px 18px 28px!important}
+#tk.tkpg .tkf{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
+#m input,#m select,#m textarea{-webkit-user-select:text!important;user-select:text!important}

@@ -58,7 +58,7 @@ PDF `.bin` dan `vault.js` memakai satu kunci dokumen yang sama. Build memakai ul
 - Lembar baca bertipografi serif; pembatas halaman tipis; gambar dibatasi tinggi 78% layar.
 
 ## Menu hamburger: dua lapisan
-Menu terdiri dari lapisan **Spesifikasi Umum 2025** (navigasi, penanda, ukuran huruf, tema, lompat ke seksi) dan lapisan **Teknik** (jalan pintas ke kalkulator). Tiap lapisan punya panah untuk melipat/membuka; status disimpan di perangkat (`sun_ly`). Tombol Teknik tidak lagi ada di dok bawah.
+Beranda dan hamburger sama-sama punya dua lapisan yang bisa dilipat/dibuka dengan panah: **Spesifikasi Umum 2025** (di beranda: lanjutkan membaca, penanda, semua divisi; di hamburger: navigasi, penanda, ukuran huruf, tema, lompat ke seksi) dan **Teknik** (kartu alat). Status lipat disimpan di perangkat (`sun_lyh` beranda, `sun_ly` hamburger). Teknik membuka HALAMAN PENUH seperti halaman divisi (tab antar-alat + tombol Kembali); tombol Teknik tidak lagi di dok bawah.
 
 ## Modul Teknik Pro (75-teknik.js)
 Lapisan Teknik di hamburger membuka: U-Ditch (DS-1..6), Box Culvert + rekomendasi dari debit, Pasangan Batu, DPT (guling/geser/daya dukung), Bore Pile (Decourt-Quaresma). Asisten paham bahasa alami, mis. `box culvert 2x2 panjang 50 m debit 4`. Semua hasil = ESTIMASI AWAL; wajib diverifikasi ahli dan gambar kerja.
