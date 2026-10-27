@@ -39,13 +39,9 @@ mark{background:var(--mk);box-shadow:0 0 10px var(--mk)}
 .fab button{flex:none!important;min-width:64px;flex-direction:column!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:16px!important;padding:7px 10px!important;font:600 11px "Space Grotesk",system-ui,sans-serif!important;color:var(--pkfg)!important}
 .fab button i{font-size:19px!important;transition:transform .2s}.fab button:hover{background:var(--chip)!important;transform:none}.fab button:hover i{transform:translateY(-3px) scale(1.15)}
 @media(max-width:600px){.fab{left:0!important;right:0!important;bottom:0!important;transform:none;max-width:none!important;border-radius:20px 20px 0 0;justify-content:space-around;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))!important}.fab button{flex:1!important;min-width:0}}
-/* panel: terkunci di antara header dan dok navigasi */
-#ai,#pk,#tk,#dp{top:calc(var(--hh,140px) + 10px)!important;bottom:calc(var(--dk,84px) + 24px)!important;height:auto!important;max-height:none!important;right:max(14px,calc((100% - 1100px)/2))!important}
-@media(max-width:600px){#ai,#pk,#tk,#dp{top:calc(var(--hh,120px) + env(safe-area-inset-top,0px))!important;bottom:var(--dk,64px)!important;right:0!important;left:0!important}}
 /* panel */
-#ai,#pk,#tk,#dp,#np{background:var(--pkbg)!important;border:1px solid var(--line)!important;border-radius:22px!important;box-shadow:0 24px 70px #000a,0 0 0 1px var(--glow)!important;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);bottom:96px!important;overflow:hidden;animation:pin .28s cubic-bezier(.2,.9,.3,1.2)}
+#ai,#pk,#tk,#dp,#np{background:var(--pkbg)!important;border:1px solid var(--line)!important;border-radius:22px!important;box-shadow:0 24px 70px #000a,0 0 0 1px var(--glow)!important;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);overflow:hidden;animation:pin .28s cubic-bezier(.2,.9,.3,1.2)}
 @keyframes pin{from{opacity:0;transform:translateY(18px) scale(.97)}}
-@media(max-width:600px){#ai,#pk,#tk,#dp{border-radius:0!important}}
 #ai header,#pk header,#tk header,#dp header{background:linear-gradient(90deg,var(--chip),transparent)!important;border-bottom:1px solid var(--line)!important;font-weight:700;letter-spacing:.03em}
 #tk .x:hover,#pk .x:hover,#dp .x:hover{background:var(--chip);box-shadow:none}
 #tk nav button{border:1px solid var(--line);background:var(--chip);color:var(--pkfg);transition:all .2s}
@@ -73,7 +69,7 @@ mark{background:var(--mk);box-shadow:0 0 10px var(--mk)}
 `;
 document.head.appendChild(css);
 const meas=()=>{const h=document.querySelector('header'),f=document.querySelector('.fab'),r=document.documentElement.style;
-  if(h)r.setProperty('--hh',h.getBoundingClientRect().bottom+'px');if(f)r.setProperty('--dk',f.offsetHeight+'px')};
+  if(h)r.setProperty('--hh',h.offsetHeight+'px');if(f)r.setProperty('--dk',f.offsetHeight+'px')};
 meas();addEventListener('resize',meas);setInterval(meas,700);
 // cahaya mengikuti kursor pada kartu
 addEventListener('pointermove',e=>{const d=e.target.closest&&e.target.closest('details');if(!d)return;const r=d.getBoundingClientRect();d.style.setProperty('--mx',(e.clientX-r.left)+'px');d.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});

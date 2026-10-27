@@ -51,5 +51,11 @@ PDF `.bin` dan `vault.js` memakai satu kunci dokumen yang sama. Build memakai ul
 - Offline: halaman login dan dokumen tersimpan lewat service worker (PDF dan video tetap butuh internet).
 - Keyboard: kartu hasil/seksi bisa difokus dan dibuka dengan Enter/Spasi, Escape menutup panel.
 
+## Tata letak fokus baca (90-focus.js)
+- Header ramping; kolom cari menyingkat saat membaca (ikon cari atau tombol `/`). Header menampilkan halaman aktif dan persen terbaca.
+- Header dan dok bawah menyingkir saat menggulir ke bawah, muncul lagi saat menggulir ke atas, di akhir halaman, atau saat panel terbuka.
+- Layar >= 1000 px: panel (Asisten, Pustaka, Teknik, Unduh, Catatan) tampil di samping dan mendorong halaman, jadi teks tidak tertimpa. Layar lebih kecil: lembar di bawah header. Hanya satu panel terbuka; tombol dok yang aktif ditandai.
+- Lembar baca bertipografi serif; pembatas halaman tipis; gambar dibatasi tinggi 78% layar.
+
 ## Modul Teknik Pro (75-teknik.js)
 Tombol Teknik: U-Ditch (DS-1..6), Box Culvert + rekomendasi dari debit, Pasangan Batu, DPT (guling/geser/daya dukung), Bore Pile (Decourt-Quaresma). Asisten paham bahasa alami, mis. `box culvert 2x2 panjang 50 m debit 4`. Semua hasil = ESTIMASI AWAL; wajib diverifikasi ahli dan gambar kerja.
