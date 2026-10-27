@@ -54,6 +54,7 @@ css.textContent=`
 .pvsp{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--acc);animation:pvsp .8s linear infinite}
 @keyframes pvsp{to{transform:rotate(360deg)}}
 .pvf{padding:8px 12px 10px!important;margin:0!important}
+.pvdz{border:2px dashed var(--line);margin:12px;border-radius:14px;background:var(--card);inset:0}.pvdz.over{border-color:var(--acc)}.pvdz b{color:var(--ink);font-size:15px}.pvdz small{max-width:46ch;line-height:1.6}.pvdz .pvk{min-height:38px;padding:6px 16px}
 .pvx.pvfs{position:fixed;inset:0;z-index:2000000;border-radius:0;border:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
 .pvx.pvfs .pvb{flex:1;height:auto;min-height:0}
 @media(prefers-reduced-motion:reduce){.pvsp{animation-duration:2s}}
@@ -135,8 +136,8 @@ function play(el){const id=el.dataset.vid,pl=el.dataset.pl==='1',f=document.crea
 const PDFV=(()=>{
 const PJ=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/'];
 const enc=encodeURIComponent,MB=n=>(n/1048576).toFixed(1).replace('.',',')+' MB';
-const ORDER=['pdfjs','native','gview','moz'];
-const NAMA={auto:'Otomatis',pdfjs:'pdf.js',native:'Bawaan',gview:'Google',moz:'Mozilla'};
+const ORDER=['pdfjs','native','gview','moz','berkas'];
+const NAMA={auto:'Otomatis',pdfjs:'pdf.js',native:'Bawaan',gview:'Google',moz:'Mozilla',berkas:'Berkas'};
 const proxies=()=>{
   const L=[],own=(LS.get('sun_pdfproxy','')||window.__PDF_PROXY||'').trim();
   if(/^https:\/\//.test(own))L.push({n:'proxy pribadi',f:u=>own.includes('{url}')?own.replace('{url}',enc(u)):own+enc(u)});
@@ -149,6 +150,20 @@ const proxies=()=>{
 const CACHE=new Map();
 const cput=(u,b)=>{CACHE.delete(u);CACHE.set(u,b);while(CACHE.size>3)CACHE.delete(CACHE.keys().next().value)};
 const isPdf=b=>{if(!b||b.length<1024)return false;let s='';for(let i=0;i<Math.min(1024,b.length);i++)s+=String.fromCharCode(b[i]);return s.indexOf('%PDF')>=0};
+/* --- simpan PDF di perangkat (IndexedDB, maks 8 berkas): pratinjau berikutnya terbuka tanpa internet --- */
+const IDB=(()=>{let dp=null;
+  const db=()=>dp||(dp=new Promise((ok,no)=>{try{const r=indexedDB.open('aibook_pdf',1);r.onupgradeneeded=()=>r.result.createObjectStore('f');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}}));
+  const run=(m,f)=>db().then(d=>new Promise((ok,no)=>{const t=d.transaction('f',m),st=t.objectStore('f');let out;const r=f(st);if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>ok(out);t.onerror=t.onabort=()=>no(t.error)}));
+  const prune=()=>run('readonly',st=>st.openCursor()).catch(()=>0).then(()=>db()).then(d=>new Promise(ok=>{
+    const all=[],t=d.transaction('f','readonly'),c=t.objectStore('f').openCursor();
+    c.onsuccess=()=>{const x=c.result;if(x){all.push({k:x.key,t:(x.value&&x.value.t)||0});x.continue()}};
+    t.oncomplete=()=>{all.sort((a,b)=>b.t-a.t);const old=all.slice(8);if(!old.length)return ok();
+      const w=d.transaction('f','readwrite'),ws=w.objectStore('f');old.forEach(o=>ws.delete(o.k));w.oncomplete=w.onerror=w.onabort=()=>ok()};
+    t.onerror=t.onabort=()=>ok()})).catch(()=>{});
+  return{
+    get:u=>run('readonly',st=>st.get(u)).then(v=>v&&v.b?new Uint8Array(v.b):null).catch(()=>null),
+    put:(u,b)=>run('readwrite',st=>st.put({b:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),t:Date.now()},u)).then(prune).then(()=>true).catch(()=>false),
+    del:u=>run('readwrite',st=>st.delete(u)).catch(()=>{})}})();
 /* --- unduh satu jalur, dengan progres + batas macet 25 dtk --- */
 async function attempt(u,c,prog){
   let tm;const arm=()=>{clearTimeout(tm);tm=setTimeout(()=>c.abort(),25000)};arm();
@@ -167,6 +182,9 @@ async function attempt(u,c,prog){
 /* --- ambil byte: langsung dulu, lalu proxy berjenjang (tiap 3,5 dtk atau segera saat jalur sebelumnya gagal) --- */
 function getBytes(url,st){
   if(CACHE.has(url)){const b=CACHE.get(url);cput(url,b);return Promise.resolve({b,via:'cache'})}
+  return IDB.get(url).then(b=>{if(b&&isPdf(b)){cput(url,b);return{b,via:'tersimpan di perangkat'}}return netBytes(url,st)})}
+function netBytes(url,st){
+  if(CACHE.has(url)){const b=CACHE.get(url);cput(url,b);return Promise.resolve({b,via:'cache'})}
   const mem=LS.get('sun_pv_route',null),fresh=mem&&Date.now()-mem.t<864e5?mem:null;
   let src=[{n:'langsung',u:url}].concat(proxies().map(p=>({n:p.n,u:p.f(url)})));
   if(fresh){ // jalur yang terakhir berhasil maju ke depan; "langsung" yang dulu gagal dilewati
@@ -184,7 +202,7 @@ function getBytes(url,st){
       attempt(s.u,c,(n,tot)=>{seen[i]=n;if(!done)st.prog(Math.max.apply(null,seen.filter(Boolean)),tot)})
         .then(b=>{clearTimeout(t);if(done)return;done=true;
           ctl.forEach((x,j)=>j!==i&&x.abort());
-          cput(url,b);LS.set('sun_pv_route',{n:s.n,t:Date.now()});res({b,via:s.n})})
+          cput(url,b);IDB.put(url,b);LS.set('sun_pv_route',{n:s.n,t:Date.now()});res({b,via:s.n})})
         .catch(e=>{clearTimeout(t);if(done)return;
           if(++fails>=src.length){done=true;rej(new Error('semua jalur gagal'))}else launch()});
     };
@@ -207,7 +225,7 @@ function loadLib(){
   return LIBP}
 
 const UI=`<div class="pvx"><div class="pvt" role="tablist" aria-label="Mesin pratinjau">
-${['auto','pdfjs','native','gview','moz'].map(k=>`<button type="button" class="pvk" role="tab" data-pe="${k}">${NAMA[k]}</button>`).join('')}
+${['auto','pdfjs','native','gview','moz','berkas'].map(k=>`<button type="button" class="pvk" role="tab" data-pe="${k}">${NAMA[k]}</button>`).join('')}
 <span class="pvg"></span><button type="button" class="pvk" data-pn title="Coba mesin berikutnya">Mesin lain \u25b8</button><button type="button" class="pvk" data-pf title="Layar penuh" aria-label="Layar penuh">\u26f6</button></div>
 <div class="pvc" hidden><button type="button" class="pvk" data-pp aria-label="Halaman sebelumnya">\u25c0</button><input class="pvi" type="number" min="1" value="1" aria-label="Nomor halaman"><span class="pvtot">/ 1</span><button type="button" class="pvk" data-px aria-label="Halaman berikutnya">\u25b6</button><span class="pvg"></span><button type="button" class="pvk" data-pz="-" aria-label="Perkecil">\u2212</button><button type="button" class="pvk pvzl" data-pz="0" title="Pas lebar">100%</button><button type="button" class="pvk" data-pz="+" aria-label="Perbesar">+</button></div>
 <div class="pvs" role="status" aria-live="polite"></div><div class="pvbar" hidden><i></i></div>
@@ -219,7 +237,7 @@ function open(w,url,title){
   w.innerHTML=UI;
   const $=q=>w.querySelector(q),bd=$('.pvb'),stl=$('.pvs'),bar=$('.pvbar'),bi=bar.firstChild,ft=$('.pvf'),tools=$('.pvc'),root=$('.pvx');
   const S={dead:false,rid:0,bytes:null,via:'',blobs:[],doc:null,cleanups:[],deadCbs:[],mode:LS.get('sun_pv_eng','auto'),cur:'pdfjs'};
-  if(!NAMA[S.mode])S.mode='auto';
+  if(!NAMA[S.mode]||S.mode==='berkas')S.mode='auto';
   w._pv=S;
   S.onDead=f=>S.deadCbs.push(f);
   S.destroy=()=>{if(S.dead)return;S.dead=true;S.deadCbs.forEach(f=>{try{f()}catch(e){}});S.cleanups.forEach(f=>{try{f()}catch(e){}});
@@ -229,7 +247,7 @@ function open(w,url,title){
   const stBox=()=>({say,prog,onDead:S.onDead});
   const spin=m=>{bd.innerHTML='<div class="pvl"><i class="pvsp"></i></div>';tools.hidden=true;say(m||'')};
   const mark=()=>w.querySelectorAll('[data-pe]').forEach(b=>{const on=b.dataset.pe===S.mode;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-  const footer=()=>{ft.innerHTML=`Mesin aktif: <b>${NAMA[S.cur]||S.cur}</b>${S.via?' (via '+esc(S.via)+')':''}. Kosong atau gagal? Klik <b>Mesin lain \u25b8</b>, <a href="${ea(url)}" target="_blank" rel="noopener noreferrer">buka PDF di tab baru</a>${S.bytes?' \u00b7 <a href="#" data-ps>simpan PDF</a>':''} \u00b7 <a href="#" data-pc>atur proxy pribadi</a>.`};
+  const footer=()=>{ft.innerHTML=`Mesin aktif: <b>${NAMA[S.cur]||S.cur}</b>${S.via?' (via '+esc(S.via)+')':''}. Kosong atau gagal? Klik <b>Mesin lain \u25b8</b>, <a href="${ea(url)}" target="_blank" rel="noopener noreferrer">buka PDF di tab baru</a>${S.bytes?' \u00b7 <a href="#" data-ps>simpan PDF</a>':''} \u00b7 <a href="#" data-pu>pilih berkas PDF dari perangkat</a> \u00b7 <a href="#" data-pc>atur proxy pribadi</a>.`};
   const frame=(src,t)=>{bd.innerHTML='';tools.hidden=true;const f=document.createElement('iframe');f.title=t||'Pratinjau PDF';f.referrerPolicy='no-referrer';f.src=src;bd.appendChild(f);return f};
   const bytes=()=>{
     if(S.bytes)return Promise.resolve(S.bytes);
@@ -310,11 +328,32 @@ function open(w,url,title){
     const rt=LS.get('sun_pv_route',null),ps=proxies(),p=(rt&&ps.find(x=>x.n===rt.n))||ps[0];
     frame('https://mozilla.github.io/pdf.js/web/viewer.html?file='+enc(p.f(url)),'Mozilla pdf.js');
     say('Penampil resmi pdf.js (Mozilla) lewat '+p.n+'.');footer()}
-  const E={pdfjs:eCanvas,native:eNative,gview:eGview,moz:eMoz};
+  /* ---- mesin 5: berkas dari perangkat (selalu bisa dipakai; disimpan agar berikutnya langsung terbuka) ---- */
+  const nice=()=>(decodeURIComponent(url.split('?')[0].split('/').pop()||'dokumen.pdf')||'dokumen.pdf');
+  async function eBerkas(live,note){
+    tools.hidden=true;bar.hidden=true;S.cur='berkas';
+    bd.innerHTML='<div class="pvl pvdz"><b>Pratinjau lewat berkas PDF</b><small>'+(note?esc(note)+' ':'')+'Situs sumber tidak mengizinkan PDF-nya ditampilkan di dalam aplikasi. Caranya: (1) klik <b>Buka/unduh PDF</b> lalu simpan berkasnya, (2) pilih atau seret berkas itu ke sini. Berkas disimpan di perangkat ini, jadi pratinjau berikutnya langsung terbuka, juga tanpa internet.</small><div class="pvt" style="border:0;justify-content:center"><a class="pvk" href="'+ea(url)+'" target="_blank" rel="noopener noreferrer" download>1. Buka/unduh PDF</a><label class="pvk on">2. Pilih berkas PDF<input type="file" accept="application/pdf,.pdf" hidden></label></div><small data-pm></small></div>';
+    say('Menunggu berkas PDF dari perangkat.');footer();
+    const z=bd.firstChild,inp=z.querySelector('input'),msg=z.querySelector('[data-pm]');
+    const take=async f=>{
+      if(!f)return;msg.textContent='Membaca '+f.name+'\u2026';
+      try{
+        const b=new Uint8Array(await f.arrayBuffer());
+        if(!isPdf(b)){msg.textContent='Berkas itu bukan PDF yang valid. Pilih berkas .pdf yang sesuai.';return}
+        S.bytes=b;S.bp=Promise.resolve(b);S.via='berkas perangkat';cput(url,b);
+        const kept=await IDB.put(url,b);
+        start('pdfjs',true).then(()=>{if(!kept)say(stl.textContent+' (Penyimpanan perangkat penuh/ditolak: berkas tidak disimpan untuk lain kali.)')});
+      }catch(e){msg.textContent='Gagal membaca berkas: '+(e&&e.message||'tidak diketahui')}};
+    inp.addEventListener('change',()=>take(inp.files&&inp.files[0]));
+    ['dragenter','dragover'].forEach(n=>z.addEventListener(n,e=>{e.preventDefault();z.classList.add('over')}));
+    ['dragleave','drop'].forEach(n=>z.addEventListener(n,e=>{e.preventDefault();z.classList.remove('over')}));
+    z.addEventListener('drop',e=>take(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]));
+  }
+  const E={pdfjs:eCanvas,native:eNative,gview:eGview,moz:eMoz,berkas:eBerkas};
 
   async function start(mode,keepMode){
     const my=++S.rid,live=()=>!S.dead&&S.rid===my;
-    if(!keepMode){S.mode=mode;LS.set('sun_pv_eng',mode)}
+    if(!keepMode){S.mode=mode;if(mode!=='berkas')LS.set('sun_pv_eng',mode)}
     mark();bar.hidden=true;
     if(S.doc){try{S.doc.destroy()}catch(e){}S.doc=null}
     S.cleanups.forEach(f=>{try{f()}catch(e){}});S.cleanups.length=0;
@@ -330,12 +369,14 @@ function open(w,url,title){
       S.cur=mode;await E[mode](live);
     }catch(e){
       if(!live())return;
-      bd.innerHTML='<div class="pvl pvx2">Pratinjau belum berhasil dimuat.<br><small>Situs sumber memblokir pengambilan langsung dan semua proxy gratis gagal/penuh.</small><br><button type="button" class="pvk" data-pr>Coba lagi</button> <a class="pvk" href="'+ea(url)+'" target="_blank" rel="noopener noreferrer">Buka di tab baru</a></div>';
-      tools.hidden=true;bar.hidden=true;say('Gagal: '+(e&&e.message||'tidak diketahui')+'. Tips: pasang proxy pribadi (lihat \u201catur proxy pribadi\u201d).');S.bytes=null;S.bp=null;footer()}
+      S.bytes=null;S.bp=null;
+      eBerkas(live,'Pratinjau otomatis belum berhasil ('+(e&&e.message||'tidak diketahui')+').');
+    }
   }
   root.addEventListener('click',e=>{const t=e.target;
     const pe=t.closest('[data-pe]');if(pe){start(pe.dataset.pe);return}
     if(t.closest('[data-pn]')){const i=ORDER.indexOf(S.cur);start(ORDER[(i+1)%ORDER.length],true);S.mode=ORDER[(i+1)%ORDER.length];mark();return}
+    if(t.closest('[data-pu]')){e.preventDefault();start('berkas');return}
     if(t.closest('[data-pr]')){CACHE.delete(url);LS.set('sun_pv_route',null);start(S.mode);return}
     if(t.closest('[data-pf]')){const on=root.classList.toggle('pvfs');document.documentElement.style.overflow=on?'hidden':'';return}
     const sv=t.closest('[data-ps]');if(sv){e.preventDefault();const u=URL.createObjectURL(new Blob([S.bytes],{type:'application/pdf'})),a=document.createElement('a');
