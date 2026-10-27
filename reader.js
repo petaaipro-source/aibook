@@ -73,16 +73,33 @@ function search(t){
 function menu(o){dr.hidden=!o;hb.setAttribute('aria-expanded',o);if(o)nv.focus();else if(document.activeElement&&nv.contains(document.activeElement))hb.focus()}
 function setFz(n){fz=Math.max(14,Math.min(26,n));LS.set('sun_fz',fz);document.querySelectorAll('.txt').forEach(e=>e.style.fontSize=fz+'px');const f=$('fzv');if(f)f.textContent=fz}
 function setTheme(t){const r=document.documentElement;t==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',t);LS.set('sun_theme',t);nv.querySelectorAll('[data-th]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.th===t))}
+const LY={sp:{t:'Spesifikasi Umum 2025',i:'\u{1F4D8}'},tk:{t:'Teknik',i:'\u{1F3D7}\uFE0F'}};
+const lyOpen=k=>!!Object.assign({sp:true,tk:false},LS.get('sun_ly',{}))[k];
+function lyHead(k,sub,body){const o=lyOpen(k);return `<section class="ly" data-ly="${k}" data-open="${o?1:0}"><button type="button" class="lyh" aria-expanded="${o}" aria-controls="lyb-${k}"><span class="lyi" aria-hidden="true">${LY[k].i}</span><span class="lyt">${LY[k].t}<small>${sub}</small></span><span class="lyc" aria-hidden="true"></span></button><div class="lyb" id="lyb-${k}"><div class="lyx"${o?'':' inert'}>${body}</div></div></section>`}
+function setLy(k,o){const el=nv.querySelector('.ly[data-ly="'+k+'"]');if(!el)return;el.dataset.open=o?1:0;el.querySelector('.lyh').setAttribute('aria-expanded',o);const x=el.querySelector('.lyx');o?x.removeAttribute('inert'):x.setAttribute('inert','');const v=Object.assign({sp:true,tk:false},LS.get('sun_ly',{}));v[k]=o;LS.set('sun_ly',v)}
+function tkBody(){const T=window.__TKUI;
+  if(!T)return '<p class="pg">Memuat modul teknik...</p>';
+  const cur=T.isOpen()?T.cur():'';
+  return '<div class="tkg">'+T.tools.map(t=>`<button type="button" class="tki${t.id===cur?' on':''}" data-tk="${t.id}"><span aria-hidden="true">${t.i}</span><b>${esc(t.n)}</b></button>`).join('')+'</div><p class="pg tkn">Kalkulator & gambar skema. Hasil berupa estimasi awal; wajib diverifikasi ahli dan gambar kerja.</p>'}
+function fillTk(){const el=nv.querySelector('#lyb-tk .lyx');if(el)el.innerHTML=tkBody();const sm=nv.querySelector('.ly[data-ly="tk"] .lyt small');if(sm&&window.__TKUI)sm.textContent=window.__TKUI.tools.length-1+' kalkulator + katalog'}
 function buildMenu(){
-  let h='<h2>Navigasi</h2><button class="mi" id="mh">Beranda (semua divisi)</button><h2>Penanda</h2><div id="bml"></div><h2>Ukuran huruf</h2><div class="seg"><button id="fm" aria-label="Kecilkan">A-</button><button disabled id="fzv">'+fz+'</button><button id="fp" aria-label="Besarkan">A+</button></div><h2>Tema</h2><div class="seg"><button data-th="auto">Otomatis</button><button data-th="light">Terang</button><button data-th="dark">Gelap</button></div><h2>Lompat ke seksi</h2>';
-  for(const v of D){h+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}</span></summary>`;
-    for(const s of v.secs)h+=`<div class="s" tabindex="0" role="button" data-m="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}</span></div>`;h+='</details>'}
-  nv.innerHTML=h;renderBm();
+  let sp='<h2>Navigasi</h2><button class="mi" id="mh">Beranda (semua divisi)</button><h2>Penanda</h2><div id="bml"></div><h2>Ukuran huruf</h2><div class="seg"><button id="fm" aria-label="Kecilkan">A-</button><button disabled id="fzv">'+fz+'</button><button id="fp" aria-label="Besarkan">A+</button></div><h2>Tema</h2><div class="seg"><button data-th="auto">Otomatis</button><button data-th="light">Terang</button><button data-th="dark">Gelap</button></div><h2>Lompat ke seksi</h2>';
+  for(const v of D){sp+=`<details><summary><span class="no">${v.n}</span><span class="nm">${esc(v.name)}</span></summary>`;
+    for(const s of v.secs)sp+=`<div class="s" tabindex="0" role="button" data-m="${s.p}"><span class="k${v.n==='L'?' kl':''}">${s.k}</span><span class="t">${esc(s.t)}</span></div>`;sp+='</details>'}
+  nv.innerHTML=lyHead('sp',D.length+' bagian dokumen',sp)+lyHead('tk','kalkulator teknik',tkBody());
+  fillTk();renderBm();
   $('mh').onclick=()=>{menu(false);stack=[];cur={k:'home'};render(cur)};
   $('fm').onclick=()=>setFz(fz-2);$('fp').onclick=()=>setFz(fz+2);
   nv.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>setTheme(b.dataset.th));
-  nv.addEventListener('click',e=>{const t=e.target.closest('[data-m]');if(t){menu(false);const p=+t.dataset.m;go({k:'read',p,t:p})}});
+  setTheme(LS.get('sun_theme','auto'));
 }
+if(!window.__nvBound){window.__nvBound=1;
+  nv.addEventListener('click',e=>{
+    const h=e.target.closest('.lyh');if(h){const el=h.parentNode;setLy(el.dataset.ly,el.dataset.open!=='1');return}
+    const t=e.target.closest('[data-m]');if(t){menu(false);const p=+t.dataset.m;go({k:'read',p,t:p});return}
+    const k=e.target.closest('[data-tk]');if(k&&window.__TKUI){const T=window.__TKUI;menu(false);if(T.isOpen()&&T.cur()===k.dataset.tk)return;T.open(k.dataset.tk)}});
+  addEventListener('tk-ready',fillTk);
+  new MutationObserver(()=>{if(!dr.hidden)fillTk()}).observe(dr,{attributes:true,attributeFilter:['hidden']})}
 m.addEventListener('click',e=>{
   const a=e.target.closest('a.x');
   if(a){e.preventDefault();const p=a.dataset.pg?+a.dataset.pg:resolve(a.dataset.ref);if(p)go({k:'read',p,t:p});return}

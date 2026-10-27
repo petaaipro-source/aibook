@@ -218,7 +218,10 @@ const draw=()=>{nav.innerHTML='';tabs.forEach(id=>{const t=id==='cat'?CAT:TOOLS[
  body.querySelectorAll('[data-k]').forEach(e=>e.oninput=e.onchange=run);run()};
 const open=(id,pre)=>{if(id)cur=id;if(pre&&TOOLS[cur]){VAL[cur]=Object.assign(VAL[cur]||Object.fromEntries(TOOLS[cur].fields.map(f=>[f.k,f.v])),pre)}tk.style.display='flex';ai.style.display='none';const pk=document.getElementById('pk');if(pk)pk.style.display='none';draw()};
 tk.querySelector('.x').onclick=()=>tk.style.display='none';
-mk('🏗️ Teknik',()=>tk.style.display==='flex'?tk.style.display='none':open());
+/* Tombol Teknik tidak lagi di dok bawah: kini menjadi lapisan "Teknik" di menu hamburger (reader.js memanggil window.__TKUI). */
+window.__TKUI={tools:tabs.map(id=>{const t=id==='cat'?CAT:TOOLS[id];return{id,n:t.n,i:t.i}}),
+ open:id=>open(id),close:()=>{tk.style.display='none'},isOpen:()=>tk.style.display==='flex',cur:()=>cur};
+window.dispatchEvent(new Event('tk-ready'));
 
 /* ===================== ASISTEN CERDAS (bahasa alami) ===================== */
 const nm=(t,k)=>{const m=t.match(new RegExp('(?:'+k+')\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)'));return m?parseFloat(m[1].replace(',','.')):null};

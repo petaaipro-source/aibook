@@ -57,5 +57,8 @@ PDF `.bin` dan `vault.js` memakai satu kunci dokumen yang sama. Build memakai ul
 - Layar >= 1000 px: panel (Asisten, Pustaka, Teknik, Unduh, Catatan) tampil di samping dan mendorong halaman, jadi teks tidak tertimpa. Layar lebih kecil: lembar di bawah header. Hanya satu panel terbuka; tombol dok yang aktif ditandai.
 - Lembar baca bertipografi serif; pembatas halaman tipis; gambar dibatasi tinggi 78% layar.
 
+## Menu hamburger: dua lapisan
+Menu terdiri dari lapisan **Spesifikasi Umum 2025** (navigasi, penanda, ukuran huruf, tema, lompat ke seksi) dan lapisan **Teknik** (jalan pintas ke kalkulator). Tiap lapisan punya panah untuk melipat/membuka; status disimpan di perangkat (`sun_ly`). Tombol Teknik tidak lagi ada di dok bawah.
+
 ## Modul Teknik Pro (75-teknik.js)
-Tombol Teknik: U-Ditch (DS-1..6), Box Culvert + rekomendasi dari debit, Pasangan Batu, DPT (guling/geser/daya dukung), Bore Pile (Decourt-Quaresma). Asisten paham bahasa alami, mis. `box culvert 2x2 panjang 50 m debit 4`. Semua hasil = ESTIMASI AWAL; wajib diverifikasi ahli dan gambar kerja.
+Lapisan Teknik di hamburger membuka: U-Ditch (DS-1..6), Box Culvert + rekomendasi dari debit, Pasangan Batu, DPT (guling/geser/daya dukung), Bore Pile (Decourt-Quaresma). Asisten paham bahasa alami, mis. `box culvert 2x2 panjang 50 m debit 4`. Semua hasil = ESTIMASI AWAL; wajib diverifikasi ahli dan gambar kerja.

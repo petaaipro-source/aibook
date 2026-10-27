@@ -49,3 +49,23 @@ h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#st{fon
 .r:focus-visible,.s:focus-visible,[data-p]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #nv:focus{outline:none}
 @media(prefers-reduced-motion:reduce){body{animation:none!important}html{scroll-behavior:auto!important}}
+
+/* ---- menu hamburger: dua lapisan (Spesifikasi Umum 2025 + Teknik), masing-masing bisa dilipat ---- */
+.ly{border:1px solid var(--line);border-radius:16px;background:var(--card);margin-bottom:12px;overflow:hidden}
+.lyh{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.lyh:hover{background:var(--chip);box-shadow:none}
+.lyi{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:var(--chip);border:1px solid var(--line)}
+.lyt{flex:1;min-width:0;font-weight:700;font-size:15px;line-height:1.25}.lyt small{display:block;margin-top:2px;font-weight:400;font-size:12px;color:var(--mut)}
+.lyc{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--mut);transition:transform .25s,color .2s,background .2s}
+.lyc::before{content:"";width:8px;height:8px;border:solid currentColor;border-width:0 2.5px 2.5px 0;transform:translateY(-2px) rotate(45deg)}
+.ly[data-open="1"] .lyc{transform:rotate(180deg);color:var(--acc);background:var(--chip)}
+.ly[data-open="1"] .lyh{border-bottom:1px solid var(--line)}
+.lyb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s ease}
+.ly[data-open="1"] .lyb{grid-template-rows:1fr}
+.lyx{min-height:0;overflow:hidden;padding:0 12px}.ly[data-open="1"] .lyx{padding:12px}
+.ly .lyx>h2:first-child{margin-top:0}
+.tkg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tki{display:flex;align-items:center;gap:8px;padding:11px 10px;text-align:left;min-width:0}.tki span{font-size:18px}.tki b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tki.on{border-color:var(--acc);background:var(--chip);color:var(--acc)}
+.tkn{margin:10px 2px 0;line-height:1.4}
+@media(prefers-reduced-motion:reduce){.lyb,.lyc{transition:none}}
